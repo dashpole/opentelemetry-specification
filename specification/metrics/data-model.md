@@ -66,10 +66,11 @@ linkTitle: Data Model
     + [Dropped Types](#dropped-types)
     + [Start Time](#start-time)
     + [Exemplars](#exemplars-1)
+    + [Instrumentation Scope](#instrumentation-scope)
     + [Resource Attributes](#resource-attributes)
   * [OTLP Metric points to Prometheus](#otlp-metric-points-to-prometheus)
     + [Metric Metadata](#metric-metadata-1)
-    + [Instrumentation Scope](#instrumentation-scope)
+    + [Instrumentation Scope](#instrumentation-scope-1)
     + [Gauges](#gauges-1)
     + [Sums](#sums-1)
     + [Histograms](#histograms-1)
@@ -1381,6 +1382,49 @@ MUST be added to the OpenTelemetry exemplar. The Trace ID and Span ID SHOULD be
 retrieved from the `trace_id` and `span_id` label keys, respectively.  All
 labels not used for the trace and span ids MUST be added to the OpenTelemetry
 exemplar as attributes.
+
+#### Instrumentation Scope
+
+Each metric matching `<prefix>_otel_scope_info` present in a batch of metrics
+SHOULD be dropped from the incoming scrape, and converted to an instrumentation
+scope. The `name` and `version` labels, if present MUST be converted to the
+Name and Version of the Instrumentation Scope. The prefix of the metric MUST be
+added to the Instrumentation Scope as the value for the `scope.short_name`
+attribute. Additional labels MUST be added as scope attributes, with keys and
+values unaltered. Other metrics in the batch which have a prefix equal to the
+prefix of the `<prefix>_otel_scope_info` metric have the matching prefix
+removed, and are placed within that Instrumentation Scope.  For example, the
+Prometheus metrics:
+
+```
+# TYPE otelhttp_otel_scope_info gauge
+otelhttp_otel_scope_info{name=go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp,version=v0.24.0,library_mascot=bear} 1
+# TYPE otelhttp_http_server_duration counter
+otelhttp_http_server_duration{...} 1
+```
+
+becomes:
+
+```yaml
+# within a resource_metrics
+scope_metrics:
+  scope:
+    name: go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp
+    version: v0.24.0
+    attributes:
+      scope.short_name: otelhttp
+      library_mascot: bear
+  metrics:
+  - name: http_server_duration
+    data:
+      sum:
+        data_points:
+        - value: 1
+```
+
+Metrics which are not found to be associated with an instrumentation scope are
+all placed within an empty instrumentation scope, and do not have any prefixes
+trimmed.
 
 #### Resource Attributes
 
