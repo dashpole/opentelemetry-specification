@@ -69,6 +69,7 @@ linkTitle: Data Model
     + [Resource Attributes](#resource-attributes)
   * [OTLP Metric points to Prometheus](#otlp-metric-points-to-prometheus)
     + [Metric Metadata](#metric-metadata-1)
+    + [Instrumentation Scope](#instrumentation-scope)
     + [Gauges](#gauges-1)
     + [Sums](#sums-1)
     + [Histograms](#histograms-1)
@@ -1433,6 +1434,15 @@ The description of an OTLP metrics point MUST be added as
 The data point type of an OTLP metric MUST be added as
 [OpenMetrics TYPE metadata](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metricfamily).
 It also dictates type-specific conversion rules listed below.
+
+#### Instrumentation Scope
+
+OpenMetrics prevents naming collisions for metrics from different libraries by
+adding a [metric namespace](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-naming-and-namespaces),
+which is generally a single-word prefix, to metrics. The
+[`scope.short_name` scope attribute](../scope/README.md#scope-semantic-conventions),
+serves the same purpose. `scope.short_name`, if present, MUST be attached as a
+prefix to all metrics from an Instrumentation Scope.
 
 #### Gauges
 
