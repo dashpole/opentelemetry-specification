@@ -1444,6 +1444,16 @@ which is generally a single-word prefix, to metrics. The
 serves the same purpose. `scope.short_name`, if present, MUST be attached as a
 prefix to all metrics from an Instrumentation Scope.
 
+For each Instrumentation Scope with a `scope.short_name` attribute, Prometheus
+exporters SHOULD generate an info-typed metric named
+`<scope.short_name>_otel_scope_info`. If multiple Instrumentation Scopes have
+the same `scope.short_name`, do not generate either metric. If present,
+Instrumentation Scope `name` and `version` MUST be added as `name` and
+`version` labels.  Values for `name` and `version` labels, as well as
+additional scope attributes (other than `scope.short_name`) MUST be added
+following the rules described in the [`Metric Attributes`](#metric-attributes)
+section below.
+
 #### Gauges
 
 An [OpenTelemetry Gauge](#gauge) MUST be converted to a Prometheus Gauge.
