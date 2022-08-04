@@ -1385,20 +1385,20 @@ exemplar as attributes.
 
 #### Instrumentation Scope
 
-Each metric matching `<prefix>_otel_scope_info` present in a batch of metrics
+Each metric matching `<prefix>_opentelemetry_scope_info` present in a batch of metrics
 SHOULD be dropped from the incoming scrape, and converted to an instrumentation
 scope. The `name` and `version` labels, if present MUST be converted to the
 Name and Version of the Instrumentation Scope. The prefix of the metric MUST be
 added to the Instrumentation Scope as the value for the `scope.short_name`
 attribute. Additional labels MUST be added as scope attributes, with keys and
 values unaltered. Other metrics in the batch which have a prefix equal to the
-prefix of the `<prefix>_otel_scope_info` metric have the matching prefix
+prefix of the `<prefix>_opentelemetry_scope_info` metric have the matching prefix
 removed, and are placed within that Instrumentation Scope.  For example, the
 Prometheus metrics:
 
 ```
-# TYPE otelhttp_otel_scope_info gauge
-otelhttp_otel_scope_info{name=go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp,version=v0.24.0,library_mascot=bear} 1
+# TYPE otelhttp_opentelemetry_scope_info gauge
+otelhttp_opentelemetry_scope_info{name="go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp",version="v0.24.0",library_mascot="bear"} 1
 # TYPE otelhttp_http_server_duration counter
 otelhttp_http_server_duration{...} 1
 ```
@@ -1485,12 +1485,12 @@ OpenMetrics prevents naming collisions for metrics from different libraries by
 adding a [metric namespace](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-naming-and-namespaces),
 which is generally a single-word prefix, to metrics. The
 [`scope.short_name` scope attribute](../scope/README.md#scope-semantic-conventions),
-serves the same purpose. `scope.short_name`, if present, MUST be attached as a
+serves the same purpose. `<scope.short_name>_`, if present, MUST be attached as a
 prefix to all metrics from an Instrumentation Scope.
 
 For each Instrumentation Scope with a `scope.short_name` attribute, Prometheus
 exporters SHOULD generate an info-typed metric named
-`<scope.short_name>_otel_scope_info`. If multiple Instrumentation Scopes have
+`<scope.short_name>_opentelemetry_scope_info`. If multiple Instrumentation Scopes have
 the same `scope.short_name`, do not generate either metric. If present,
 Instrumentation Scope `name` and `version` MUST be added as `name` and
 `version` labels.  Values for `name` and `version` labels, as well as
