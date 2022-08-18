@@ -1394,10 +1394,10 @@ attribute. Additional labels MUST be added as scope attributes, with keys and
 values unaltered. Other metrics in the batch which have a prefix equal to the
 prefix of the `<prefix>_opentelemetry_scope_info` metric have the matching prefix
 removed, and are placed within that Instrumentation Scope.  For example, the
-Prometheus metrics:
+OpenMetrics metrics:
 
 ```
-# TYPE otelhttp_opentelemetry_scope_info gauge
+# TYPE otelhttp_opentelemetry_scope_info info
 otelhttp_opentelemetry_scope_info{name="go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp",version="v0.24.0",library_mascot="bear"} 1
 # TYPE otelhttp_http_server_duration counter
 otelhttp_http_server_duration{...} 1
@@ -1489,12 +1489,12 @@ serves the same purpose. `<scope.short_name>_`, if present, MUST be attached as 
 prefix to all metrics from an Instrumentation Scope.
 
 For each Instrumentation Scope with a `scope.short_name` attribute, Prometheus
-exporters SHOULD generate an info-typed metric named
-`<scope.short_name>_opentelemetry_scope_info`. If multiple Instrumentation Scopes have
-the same `scope.short_name`, do not generate either metric. If present,
-Instrumentation Scope `name` and `version` MUST be added as `name` and
-`version` labels.  Values for `name` and `version` labels, as well as
-additional scope attributes (other than `scope.short_name`) MUST be added
+exporters SHOULD generate an [Info](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#info)-typed
+metric named `<scope.short_name>_opentelemetry_scope_info`. If multiple
+Instrumentation Scopes within the batch of metrics being scraped have the same
+`scope.short_name`, do not generate either metric. If present, Instrumentation
+Scope `name` and `version` MUST be added as `name` and `version` labels. Values
+for `name` and `version` labels, as well as additional scope attributes (other than `scope.short_name`) MUST be added
 following the rules described in the [`Metric Attributes`](#metric-attributes)
 section below.
 
