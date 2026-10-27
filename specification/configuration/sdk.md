@@ -135,7 +135,7 @@ configuration model interpretation.
 
 The following table lists the current status of all SDK plugin components in the configuration data model:
 
-| SDK plugin component                                                                        | Declarative config type                                                                                                    | Missing provider behavior **[1]** |
+| SDK plugin component                                                                        | Declarative config type                                                                                                    | Missing provider behavior **[1]**     |
 |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
 | [resource detector](../resource/sdk.md#resource-detector)                                   | [ExperimentalResourceDetection](https://opentelemetry.io/docs/specs/otel-config/types/#type-experimentalresourcedetection) | warn and skip                         |
 | [text map propagator](../context/api-propagators.md#textmap-propagator)                     | [TextMapPropagator](https://opentelemetry.io/docs/specs/otel-config/types/#type-textmappropagator)                         | error                                 |
@@ -149,6 +149,7 @@ The following table lists the current status of all SDK plugin components in the
 | [exemplar reservoir](../metrics/sdk.md#exemplarreservoir)                                   | not yet available [#189](https://github.com/open-telemetry/opentelemetry-configuration/issues/189)                         | error                                 |
 | [log record exporter](../logs/sdk.md#logrecordexporter)                                     | [LogRecordExporter](https://opentelemetry.io/docs/specs/otel-config/types/#type-logrecordexporter)                         | error                                 |
 | [log record processor](../logs/sdk.md#logrecordprocessor)                                   | [LogRecordProcessor](https://opentelemetry.io/docs/specs/otel-config/types/#type-logrecordprocessor)                       | error                                 |
+| [exporter authenticator](../auth/sdk.md)                                                    | `ExperimentalAuthenticator`                                                                                                | error                                 |
 
 **[1]**: Behavior when no `PluginComponentProvider` is registered for a name referenced in the configuration model. See [Create](#create) for details.
 

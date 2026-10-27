@@ -1,12 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 <!--- Hugo front matter used to generate the website version of this page:
 linkTitle: Exporter
 --->
 
 # OpenTelemetry Protocol Exporter
 
-**Status**: [Stable](../document-status.md)
+**Status**: [Stable](../document-status.md), except where otherwise specified
 
-This document specifies the configuration options available to the OpenTelemetry Protocol ([OTLP](../../oteps/0035-opentelemetry-protocol.md)) Exporter as well as the retry behavior.
+This document specifies the configuration options, authentication, and retry behavior available to the OpenTelemetry Protocol ([OTLP](../../oteps/0035-opentelemetry-protocol.md)) Exporter.
 
 ## Configuration Options
 
@@ -190,6 +194,79 @@ release).
 ### Specifying headers via environment variables
 
 The `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_EXPORTER_OTLP_TRACES_HEADERS`, `OTEL_EXPORTER_OTLP_METRICS_HEADERS`, `OTEL_EXPORTER_OTLP_LOGS_HEADERS` environment variables will contain a list of key value pairs, and these are expected to be represented in a format matching to the [W3C Baggage](https://www.w3.org/TR/baggage/#header-content) i.e., `key1=value1,key2=value2`. [Semi-colon delimited metadata](https://www.w3.org/TR/baggage/#property) is not supported. All attribute values MUST be considered strings.
+
+## Authentication
+
+**Status**: [Development](../document-status.md)
+
+OTLP HTTP and gRPC exporters across traces, metrics, and logs SHOULD support
+configuring an [`Authenticator`](../auth/sdk.md) programmatically and via
+[Declarative Configuration](../configuration/sdk.md).
+
+### Behavior with Header or Metadata Suppliers
+
+When an OTLP exporter is configured with an `Authenticator` that supplies
+dynamic headers or metadata to the exporter:
+
+* **Per-Attempt Evaluation**: The exporter MUST invoke the `Authenticator` for
+  each outgoing export request attempt (including retry attempts) rather than
+  only at exporter initialization.
+* **Header and Metadata Precedence**: The exporter MUST merge its configured
+  headers with the dynamic headers or metadata returned by the `Authenticator`
+  for each export attempt. If the same header or metadata key is defined in
+  multiple places (compared case-insensitively), the `Authenticator`-supplied
+  value MUST take precedence over any dynamic header callback (where supported
+  by the SDK) and static `Headers` (configured programmatically or via
+  `OTEL_EXPORTER_OTLP_*_HEADERS`) for that request, without mutating the
+  exporter's static `Headers`.
+* **gRPC Metadata Key Normalization**: For `grpc` exporters, the exporter MUST
+  normalize header/metadata keys returned by the `Authenticator` to lowercase
+  ASCII when constructing gRPC request metadata.
+* **Shared Export Timeout Budget**: The exporter MUST pass the export
+  operation's remaining timeout, deadline, or cancellation signal to the
+  `Authenticator` (where the interface accepts one). Time spent executing the
+  `Authenticator` MUST count against the export attempt's remaining timeout
+  budget; if the timeout or deadline expires during authentication, the exporter
+  MUST fail the export attempt immediately without transmitting the request over
+  the network.
+
+### Behavior with Transport or Credential Wrappers
+
+When an OTLP exporter is configured with an `Authenticator` that wraps the HTTP
+transport or provides gRPC per-RPC credentials:
+
+* The exporter MUST still attach its configured static `Headers` to each
+  outgoing request or RPC (for HTTP transport wrappers, before the wrapper
+  executes so that wrapper-supplied headers override colliding static headers
+  without mutating the exporter's static `Headers`).
+* The exporter MUST wire the `Authenticator` onto its transport, channel, or
+  RPC call options such that the exporter's configured TLS/mTLS (`Certificate File`,
+  `Client key file`, `Client certificate file`), `Compression`, and `Timeout`
+  settings are preserved rather than overwritten, and so that per-RPC
+  credentials apply on each RPC attempt (including when a user-supplied gRPC
+  connection is used).
+
+### Telemetry Suppression, Diagnostics, and Lifecycle
+
+When an OTLP exporter is configured with an `Authenticator`:
+
+* **Suppressing Recursive Telemetry**: In SDKs that provide an in-band `Context`
+  mechanism for suppressing instrumentation (see
+  [Avoiding telemetry-induced-telemetry loops](../self-observability-supplementary-guidelines.md#avoiding-telemetry-induced-telemetry-loops)),
+  the exporter SHOULD invoke the `Authenticator` within a
+  suppressed-instrumentation context so that outbound network requests made
+  during credential refresh do not trigger recursive telemetry export loops.
+* **Error Handling**: If invoking the `Authenticator` fails or raises an error
+  during an export attempt, the exporter MUST handle the error in accordance
+  with [Error handling](../error-handling.md) rather than throwing an unhandled
+  exception, and complete the export attempt with a failure result.
+* **Diagnostic Redaction**: The exporter MUST NOT log dynamic header or metadata
+  values returned by the `Authenticator`.
+* **Shutdown**: The exporter MUST invoke the `Authenticator`'s `Shutdown`
+  operation (if present) when the exporter's `Shutdown` is called.
+* **Protocol Compatibility**: If an `Authenticator` only supports a subset of
+  OTLP transport protocols (HTTP vs. gRPC), the exporter SHOULD fail
+  initialization when configured with an incompatible `Authenticator`.
 
 ## Retry
 

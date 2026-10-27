@@ -41,6 +41,7 @@ path_base_for_github_subdir:
   - [Logs](logs/sdk.md)
   - [Resource](resource/sdk.md)
   - [Configuration](configuration/README.md)
+  - [Authentication](auth/sdk.md)
 - Data Specification
   - [Semantic Conventions](overview.md#semantic-conventions)
   - [Protocol](protocol/README.md)
