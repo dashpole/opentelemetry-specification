@@ -219,9 +219,6 @@ dynamic headers or metadata to the exporter:
   by the SDK) and static `Headers` (configured programmatically or via
   `OTEL_EXPORTER_OTLP_*_HEADERS`) for that request, without mutating the
   exporter's static `Headers`.
-* **gRPC Metadata Key Normalization**: For `grpc` exporters, the exporter MUST
-  normalize header/metadata keys returned by the `Authenticator` to lowercase
-  ASCII when constructing gRPC request metadata.
 * **Shared Export Timeout Budget**: The exporter MUST pass the export
   operation's remaining timeout, deadline, or cancellation signal to the
   `Authenticator` (where the interface accepts one). Time spent executing the
