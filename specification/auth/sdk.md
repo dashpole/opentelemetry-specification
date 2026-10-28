@@ -1,16 +1,22 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+<!--- Hugo front matter used to generate the website version of this page:
+linkTitle: SDK
+weight: 3
+--->
+
+# Authenticator
+
+**Status**: [Development](../document-status.md)
+
+<!-- START doctoc -->
 
 - [Overview](#overview)
 - [Package and Interface Scope](#package-and-interface-scope)
 - [Capabilities and Constraints](#capabilities-and-constraints)
-  - [Capabilities](#capabilities)
-  - [Constraints](#constraints)
+  * [Capabilities](#capabilities)
+  * [Constraints](#constraints)
 - [Documentation Requirements](#documentation-requirements)
 
 <!-- END doctoc -->
-
-</details>
 
 ## Overview
 
@@ -58,13 +64,16 @@ An SDK's `Authenticator` mechanism SHOULD support:
   request attempt (for example, `Authorization` and tenant/routing headers), or
   wrapping/configuring the underlying HTTP transport or gRPC per-RPC
   credentials where idiomatic.
-* **Request Context and Timeout Propagation**: Accepting or accessing request
-  context—such as the target endpoint URI/authority and a
-  timeout, deadline, or cancellation signal—when needed to scope credentials or
-  bound out-of-band token refresh calls.
-* **Shutdown (`Shutdown`)**: An optional idempotent lifecycle operation to
-  release background resources (such as token-exchange HTTP clients or file
-  watchers) when the owning exporter shuts down.
+* **Timeouts**: Authentication operations MUST NOT block indefinitely; there
+  MUST be a reasonable upper limit after which the operation times out with an
+  error. OpenTelemetry SDK authors can decide if they want to make the timeout
+  configurable or pass a timeout, deadline, or cancellation signal from the
+  caller.
+* **Shutdown (`Shutdown`)**: An optional lifecycle operation to release
+  background resources (such as token-exchange HTTP clients or file watchers)
+  when the owning exporter shuts down. `Shutdown` SHOULD NOT block
+  indefinitely. OpenTelemetry SDK authors can decide if they want to make the
+  shutdown timeout configurable.
 
 ### Constraints
 
@@ -83,8 +92,8 @@ for `Authenticator` implementations:
 
 1. **Concurrency safety**: Safe for concurrent invocation across multiple
    threads or coroutines.
-2. **Timeout and cancellation adherence**: Honoring any cancellation, deadline,
-   or timeout signal provided by the caller when performing out-of-band
-   credential acquisition.
+2. **Timeouts**: Not blocking indefinitely when acquiring or refreshing
+   credentials, and honoring any timeout, deadline, or cancellation signal if
+   provided.
 3. **Credential redaction**: Never logging sensitive credential values or
    dynamic authentication header values in diagnostic output.

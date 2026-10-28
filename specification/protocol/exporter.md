@@ -1,7 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!--- Hugo front matter used to generate the website version of this page:
 linkTitle: Exporter
 --->
@@ -219,13 +215,6 @@ dynamic headers or metadata to the exporter:
   by the SDK) and static `Headers` (configured programmatically or via
   `OTEL_EXPORTER_OTLP_*_HEADERS`) for that request, without mutating the
   exporter's static `Headers`.
-* **Shared Export Timeout Budget**: The exporter MUST pass the export
-  operation's remaining timeout, deadline, or cancellation signal to the
-  `Authenticator` (where the interface accepts one). Time spent executing the
-  `Authenticator` MUST count against the export attempt's remaining timeout
-  budget; if the timeout or deadline expires during authentication, the exporter
-  MUST fail the export attempt immediately without transmitting the request over
-  the network.
 
 ### Behavior with Transport or Credential Wrappers
 
@@ -261,9 +250,6 @@ When an OTLP exporter is configured with an `Authenticator`:
   values returned by the `Authenticator`.
 * **Shutdown**: The exporter MUST invoke the `Authenticator`'s `Shutdown`
   operation (if present) when the exporter's `Shutdown` is called.
-* **Protocol Compatibility**: If an `Authenticator` only supports a subset of
-  OTLP transport protocols (HTTP vs. gRPC), the exporter SHOULD fail
-  initialization when configured with an incompatible `Authenticator`.
 
 ## Retry
 
