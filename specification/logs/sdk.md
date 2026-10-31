@@ -16,6 +16,7 @@ weight: 3
   * [LoggerProvider Creation](#loggerprovider-creation)
   * [Logger Creation](#logger-creation)
   * [Configuration](#configuration)
+    + [Minimum stability](#minimum-stability)
     + [LoggerConfigurator](#loggerconfigurator)
   * [Shutdown](#shutdown)
   * [ForceFlush](#forceflush)
@@ -23,6 +24,7 @@ weight: 3
   * [LoggerConfig](#loggerconfig)
   * [Emit a LogRecord](#emit-a-logrecord)
   * [Enabled](#enabled)
+  * [AttributeEnabled](#attributeenabled)
 - [Additional LogRecord interfaces](#additional-logrecord-interfaces)
   * [ReadableLogRecord](#readablelogrecord)
   * [ReadWriteLogRecord](#readwritelogrecord)
@@ -90,7 +92,7 @@ a `Logger` whose behavior conforms to that `LoggerConfig`.
 ### Configuration
 
 Configuration (
-i.e. [LogRecordProcessors](#logrecordprocessor) and (**Development**) [LoggerConfigurator](#loggerconfigurator))
+i.e. [LogRecordProcessors](#logrecordprocessor), (**Development**) [minimum_stability](#minimum-stability), and (**Development**) [LoggerConfigurator](#loggerconfigurator))
 MUST be owned by the `LoggerProvider`. The configuration MAY be applied at the
 time of `LoggerProvider` creation if appropriate.
 
@@ -101,6 +103,20 @@ NOT matter whether a `Logger` was obtained from the `LoggerProvider` before or
 after the configuration change). Note: Implementation-wise, this could mean
 that `Logger` instances have a reference to their `LoggerProvider` and access
 configuration only via this reference.
+
+#### Minimum stability
+
+**Status**: [Development](../document-status.md)
+
+The `LoggerProvider` SHOULD support a `minimum_stability` configuration
+parameter of type `Stability` (`Development` or `Stable`, ordered
+`Development` < `Stable`, see [Maturity levels](../maturity-levels.md)),
+defaulting to `Stable` if not specified.
+
+`minimum_stability` controls the minimum `stability` level of log records and
+attributes that are processed by the `LoggerProvider`. See
+[Emit a LogRecord](#emit-a-logrecord), [Enabled](#enabled), and
+[AttributeEnabled](#attributeenabled) for details.
 
 #### LoggerConfigurator
 
@@ -222,7 +238,7 @@ It consists of the following parameters:
   context are not affected by this parameter and therefore bypass trace-based filtering.
 
 It is not necessary for implementations to ensure that changes to any of these
-parameters are immediately visible to callers of `Enabled`.
+parameters are immediately visible to callers of `Enabled` or `AttributeEnabled`.
 However, the changes MUST be eventually visible.
 
 ### Emit a LogRecord
@@ -240,6 +256,15 @@ Note: For performance optimization, SDKs MAY take the configured
 [attribute limits](#logrecord-limits) into consideration when generating large
 exception attributes (e.g., `exception.stacktrace`). This can help avoid
 unnecessary processing of large attribute values that would be truncated anyway.
+
+**Status**: [Development](../document-status.md) - If the log record's
+`stability` (defaulting to `Stable`) is lower than the `LoggerProvider`'s
+configured [`minimum_stability`](#minimum-stability) (that is,
+`minimum_stability` is `Stable` and `stability` is `Development`), the log
+record MUST be dropped before invoking any `LogRecordProcessor`. When a log
+record's `stability` meets or exceeds `minimum_stability` (including
+`Development` log records when `minimum_stability` is `Development`), the SDK
+MUST process the `LogRecord` normally.
 
 **Status**: [Development](../document-status.md) Before processing a log record,
 the implementation MUST apply the filtering rules defined by the
@@ -263,6 +288,10 @@ the implementation MUST apply the filtering rules defined by the
 `Enabled` MUST return `false` when either:
 
 - there are no registered [`LogRecordProcessors`](#logrecordprocessor).
+- **Status**: [Development](../document-status.md) - the provided `stability`
+  (defaulting to `Stable`) is lower than the `LoggerProvider`'s configured
+  [`minimum_stability`](#minimum-stability) (that is, `minimum_stability` is
+  `Stable` and `stability` is `Development`).
 - **Status**: [Development](../document-status.md) - `Logger` is disabled
   ([`LoggerConfig.enabled`](#loggerconfig) is `false`).
 - **Status**: [Development](../document-status.md) - the provided severity
@@ -276,6 +305,22 @@ the implementation MUST apply the filtering rules defined by the
 
 Otherwise, it SHOULD return `true`.
 It MAY return `false` to support additional optimizations and features.
+
+### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
+
+[`AttributeEnabled`](./api.md#attributeenabled) MUST return `false` when either:
+
+- there are no registered [`LogRecordProcessors`](#logrecordprocessor).
+- `Logger` is disabled ([`LoggerConfig.enabled`](#loggerconfig) is `false`).
+- the provided `stability` (defaulting to `Stable`) is lower than the
+  `LoggerProvider`'s configured [`minimum_stability`](#minimum-stability)
+  (that is, `minimum_stability` is `Stable` and `stability` is `Development`).
+
+Otherwise, it SHOULD return `true`.
+It MAY return `false` to support additional optimizations and features (such as
+attribute-filtering configuration).
 
 ## Additional LogRecord interfaces
 

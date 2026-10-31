@@ -16,6 +16,7 @@ linkTitle: No-Op
 - [Logger](#logger)
   * [Emit LogRecord](#emit-logrecord)
   * [Enabled](#enabled)
+  * [AttributeEnabled](#attributeenabled)
 
 <!-- END doctoc -->
 
@@ -58,5 +59,11 @@ The No-Op `Logger` MUST allow
 for [emitting LogRecords](./api.md#emit-a-logrecord).
 
 ### Enabled
+
+MUST always return `false`.
+
+### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
 
 MUST always return `false`.

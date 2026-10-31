@@ -18,6 +18,7 @@ weight: 1
     + [Get a Meter](#get-a-meter)
 - [Meter](#meter)
   * [Meter operations](#meter-operations)
+    + [AttributeEnabled](#attributeenabled)
 - [Instrument](#instrument)
   * [General characteristics](#general-characteristics)
     + [Instrument name syntax](#instrument-name-syntax)
@@ -27,6 +28,7 @@ weight: 1
       - [Instrument advisory parameter: `ExplicitBucketBoundaries`](#instrument-advisory-parameter-explicitbucketboundaries)
       - [Instrument advisory parameter: `Attributes`](#instrument-advisory-parameter-attributes)
       - [Instrument advisory parameter: `OptIn`](#instrument-advisory-parameter-optin)
+      - [Instrument advisory parameter: `Stability`](#instrument-advisory-parameter-stability)
     + [Synchronous and Asynchronous instruments](#synchronous-and-asynchronous-instruments)
       - [Synchronous Instrument API](#synchronous-instrument-api)
       - [Asynchronous Instrument API](#asynchronous-instrument-api)
@@ -175,7 +177,41 @@ The `Meter` MUST provide functions to create new [Instruments](#instrument):
 * [Create a new UpDownCounter](#updowncounter-creation)
 * [Create a new Asynchronous UpDownCounter](#asynchronous-updowncounter-creation)
 
+The `Meter` SHOULD provide functions to:
+
+* (**Development**) [Report if an attribute is enabled via `AttributeEnabled`](#attributeenabled)
+
 Also see the respective sections below for more information on instrument creation.
+
+#### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
+
+To help users avoid performing computationally expensive operations when
+computing or attaching [`Development` attributes](../telemetry-stability.md#development-telemetry-in-stable-instrumentations),
+a `Meter` SHOULD provide an `AttributeEnabled` API.
+
+The API MUST accept the following parameter:
+
+* `attribute_key`: The [attribute key](../common/README.md#attribute).
+
+The API SHOULD accept the following optional parameter:
+
+* `stability`: The [maturity level](../maturity-levels.md) of the attribute
+  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+
+Parameters can be added in the future, therefore, the API MUST be structured in
+a way for parameters to be added.
+
+This API MUST return a language idiomatic boolean type. A returned value of
+`true` means the attribute is enabled for the `Meter` with the provided
+arguments, and a returned value of `false` means the attribute is disabled for
+the `Meter` with the provided arguments.
+
+Instrumentation libraries SHOULD call `AttributeEnabled` at the recording call
+site before computing or attaching `Development` attributes (regardless of
+whether the enclosing instrument is `Stable` or `Development`). The returned
+value is not always static and can change over time.
 
 ## Instrument
 
@@ -289,6 +325,20 @@ Applies to all instrument types.
 `OptIn` (bool) indicates that the instrument is disabled unless the user
 explicitly enables it. If true, OpenTelemetry SDKs produce no metric data for
 the instrument by default.
+
+##### Instrument advisory parameter: `Stability`
+
+**Status**: [Development](../document-status.md)
+
+Applies to all instrument types.
+
+`Stability` (`Stable` or `Development`, see [Maturity levels](../maturity-levels.md),
+defaulting to `Stable` if not specified) indicates the stability level of the
+instrument. All synchronous and asynchronous instrument creation operations
+SHOULD accept this optional advisory parameter. If `Stability` is `Development`,
+OpenTelemetry SDKs produce no metric data for the instrument when the
+`MeterProvider`'s `minimum_stability` is `Stable` (unless explicitly enabled via
+a View).
 
 #### Synchronous and Asynchronous instruments
 

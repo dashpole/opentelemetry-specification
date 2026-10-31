@@ -19,6 +19,7 @@ aliases: [bridge-api]
 - [Logger](#logger)
   * [Emit a LogRecord](#emit-a-logrecord)
   * [Enabled](#enabled)
+  * [AttributeEnabled](#attributeenabled)
 - [Optional and required parameters](#optional-and-required-parameters)
 - [Concurrency requirements](#concurrency-requirements)
 - [Ergonomic API](#ergonomic-api)
@@ -105,6 +106,7 @@ The `Logger` MUST provide a function to:
 The `Logger` SHOULD provide functions to:
 
 - [Report if `Logger` is `Enabled`](#enabled)
+- (**Development**) [Report if an attribute is enabled via `AttributeEnabled`](#attributeenabled)
 
 ### Emit a LogRecord
 
@@ -128,6 +130,12 @@ The API MAY accept the following parameter:
 
 - Exception (optional): An exception (or error) associated with the log record.
 
+**Status**: [Development](../document-status.md) - The API SHOULD additionally
+accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the log record
+  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+
 ### Enabled
 
 To help users avoid performing computationally expensive operations when
@@ -141,6 +149,9 @@ The API SHOULD accept the following parameters:
   When only explicit Context is supported, accepting this parameter is REQUIRED.
 - [Severity Number](./data-model.md#field-severitynumber) (optional)
 - [Event Name](./data-model.md#field-eventname) (optional)
+- **Status**: [Development](../document-status.md) - `stability`: The
+  [maturity level](../maturity-levels.md) of the log record (`Stable` or
+  `Development`), optional, defaulting to `Stable` if not specified.
 
 This API MUST return a language idiomatic boolean type. A returned value of
 `true` means the `Logger` is enabled for the provided arguments, and a returned
@@ -155,6 +166,36 @@ and skip that work when it returns `false`. When constructing the `LogRecord` is
 inexpensive, instrumentation can emit it directly. The documentation SHOULD also
 state that the returned value is not static and can change over time, so a cached
 value can become stale.
+
+### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
+
+To help users avoid performing computationally expensive operations when
+computing or attaching [`Development` attributes](../telemetry-stability.md#development-telemetry-in-stable-instrumentations),
+a `Logger` SHOULD provide an `AttributeEnabled` API.
+
+The API MUST accept the following parameter:
+
+- `attribute_key`: The [attribute key](../common/README.md#attribute).
+
+The API SHOULD accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the attribute
+  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+
+Parameters can be added in the future, therefore, the API MUST be structured in
+a way for parameters to be added.
+
+This API MUST return a language idiomatic boolean type. A returned value of
+`true` means the attribute is enabled for the `Logger` with the provided
+arguments, and a returned value of `false` means the attribute is disabled for
+the `Logger` with the provided arguments.
+
+Instrumentation libraries SHOULD call `AttributeEnabled` at the recording call
+site before computing or attaching `Development` attributes (regardless of
+whether the enclosing `LogRecord` is `Stable` or `Development`). The returned
+value is not always static and can change over time.
 
 ## Optional and required parameters
 

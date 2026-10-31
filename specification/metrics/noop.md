@@ -20,6 +20,7 @@ linkTitle: No-Op
   * [Asynchronous Counter Creation](#asynchronous-counter-creation)
   * [Asynchronous UpDownCounter Creation](#asynchronous-updowncounter-creation)
   * [Asynchronous Gauge Creation](#asynchronous-gauge-creation)
+  * [AttributeEnabled](#attributeenabled)
 - [Instruments](#instruments)
   * [Counter](#counter)
     + [Counter Add](#counter-add)
@@ -177,6 +178,13 @@ parameters](./api.md#asynchronous-instrument-api) that need to be
 accepted by the creation operation. The Meter MUST accept these
 parameters. However, the Meter MUST NOT validate any argument it
 receives and it MUST NOT hold any reference to the passed callbacks.
+
+### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
+
+The No-Op `Meter` [`AttributeEnabled`](./api.md#attributeenabled) MUST always
+return `false`.
 
 ## Instruments
 

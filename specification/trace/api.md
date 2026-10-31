@@ -23,6 +23,7 @@ weight: 1
 - [Tracer](#tracer)
   * [Tracer operations](#tracer-operations)
     + [Enabled](#enabled)
+    + [AttributeEnabled](#attributeenabled)
 - [SpanContext](#spancontext)
   * [Retrieving the TraceId and SpanId](#retrieving-the-traceid-and-spanid)
   * [IsValid](#isvalid)
@@ -197,6 +198,7 @@ The `Tracer` MUST provide functions to:
 The `Tracer` SHOULD provide functions to:
 
 - [Report if `Tracer` is `Enabled`](#enabled)
+- (**Development**) [Report if an attribute is enabled via `AttributeEnabled`](#attributeenabled)
 
 #### Enabled
 
@@ -207,6 +209,12 @@ There are currently no required parameters for this API. Parameters can be
 added in the future, therefore, the API MUST be structured in a way for
 parameters to be added.
 
+**Status**: [Development](../document-status.md) - The API SHOULD accept the
+following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the span (`Stable`
+  or `Development`), defaulting to `Stable` if not specified.
+
 This API MUST return a language idiomatic boolean type. A returned value of
 `true` means the `Tracer` is enabled for the provided arguments, and a returned
 value of `false` means the `Tracer` is disabled for the provided arguments.
@@ -215,6 +223,36 @@ The returned value is not always static, it can change over time. The API
 SHOULD be documented that instrumentation authors needs to call this API each
 time they [create a new `Span`](#span-creation) to ensure they have the most
 up-to-date response.
+
+#### AttributeEnabled
+
+**Status**: [Development](../document-status.md)
+
+To help users avoid performing computationally expensive operations when
+computing or attaching [`Development` attributes](../telemetry-stability.md#development-telemetry-in-stable-instrumentations),
+a `Tracer` SHOULD provide an `AttributeEnabled` API.
+
+The API MUST accept the following parameter:
+
+- `attribute_key`: The [attribute key](../common/README.md#attribute).
+
+The API SHOULD accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the attribute
+  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+
+Parameters can be added in the future, therefore, the API MUST be structured in
+a way for parameters to be added.
+
+This API MUST return a language idiomatic boolean type. A returned value of
+`true` means the attribute is enabled for the `Tracer` with the provided
+arguments, and a returned value of `false` means the attribute is disabled for
+the `Tracer` with the provided arguments.
+
+Instrumentation libraries SHOULD call `AttributeEnabled` at the recording call
+site before computing or attaching `Development` attributes (regardless of
+whether the enclosing span is `Stable` or `Development`). The returned value is
+not always static and can change over time.
 
 ## SpanContext
 
@@ -406,6 +444,12 @@ The API MUST accept the following parameters:
 - `Start timestamp`, default to current time. This argument SHOULD only be set
   when span creation time has already passed. If API is called at a moment of
   a Span logical start, API user MUST NOT explicitly set this argument.
+
+**Status**: [Development](../document-status.md) - The API SHOULD additionally
+accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the span (`Stable`
+  or `Development`), defaulting to `Stable` if not specified.
 
 Each span has zero or one parent span and zero or more child spans, which
 represent causally related operations. A tree of related spans comprises a
@@ -870,3 +914,7 @@ empty Tracestate, and unsampled TraceFlags).  This means that a `SpanContext`
 that has been provided by a configured `Propagator` will be propagated through
 to any child span and ultimately also `Inject`, but that no new `SpanContext`s
 will be created.
+
+In the absence of an installed SDK, [`Enabled`](#enabled) and
+(**Development**) [`AttributeEnabled`](#attributeenabled) on a `Tracer` MUST
+always return `false`.
