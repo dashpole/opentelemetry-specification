@@ -15,6 +15,7 @@ weight: 3
 - [Tracer Provider](#tracer-provider)
   * [Tracer Creation](#tracer-creation)
   * [Configuration](#configuration)
+    + [Minimum stability](#minimum-stability)
     + [TracerConfigurator](#tracerconfigurator)
   * [Shutdown](#shutdown)
   * [ForceFlush](#forceflush)
@@ -112,6 +113,7 @@ a `Tracer` whose behavior conforms to that `TracerConfig`.
 
 Configuration (
 i.e., [SpanProcessors](#span-processor), [IdGenerator](#id-generators), [SpanLimits](#span-limits), [`Sampler`](#sampling),
+(**Development**) [minimum_stability](#minimum-stability),
 and (**Development**) [TracerConfigurator](#tracerconfigurator)) MUST be
 owned by the `TracerProvider`. The configuration MAY be applied at the time
 of `TracerProvider` creation if appropriate.
@@ -124,6 +126,19 @@ the updated configuration MUST also apply to all already returned `Tracers`
 Note: Implementation-wise, this could mean that `Tracer` instances have a
 reference to their `TracerProvider` and access configuration only via this
 reference.
+
+#### Minimum stability
+
+**Status**: [Development](../document-status.md)
+
+The `TracerProvider` SHOULD support a `minimum_stability` configuration
+parameter of type `Stability` (`Development` or `Stable`, ordered
+`Development` < `Stable`, see [Maturity levels](../maturity-levels.md)),
+defaulting to `Stable` if not specified.
+
+`minimum_stability` controls the minimum `stability` level of spans that are
+processed by the `TracerProvider`. See [Enabled](#enabled) and
+[SDK Span creation](#sdk-span-creation) for details.
 
 #### TracerConfigurator
 
@@ -226,6 +241,7 @@ However, the changes MUST be eventually visible.
 `Enabled` MUST return `false` when either:
 
 - there are no registered [`SpanProcessors`](#span-processor),
+- **Status**: [Development](../document-status.md) - the provided `stability` (defaulting to `Stable`) is lower than the `TracerProvider`'s configured [`minimum_stability`](#minimum-stability) (that is, `minimum_stability` is `Stable` and `stability` is `Development`),
 - **Status**: [Development](../document-status.md) - `Tracer` is disabled ([`TracerConfig.enabled`](#tracerconfig) is `false`).
 
 Otherwise, it SHOULD return `true`.
@@ -233,7 +249,20 @@ It MAY return `false` to support additional optimizations and features.
 
 ### SDK Span creation
 
-When asked to create a Span, the SDK MUST act as if doing the following in order:
+**Status**: [Development](../document-status.md) - When a span's `stability`
+(defaulting to `Stable`) is lower than the `TracerProvider`'s configured
+[`minimum_stability`](#minimum-stability) (that is, `minimum_stability` is
+`Stable` and `stability` is `Development`), `StartSpan` MUST behave
+equivalently to a
+[No-op Tracer](./api.md#behavior-of-the-api-in-the-absence-of-an-installed-sdk)—returning
+a non-recording `Span` wrapping the `SpanContext` from the parent `Context`
+unchanged (or an invalid `SpanContext` if the parent `Context` contains no
+`Span`), without generating a new `SpanId` or invoking the `Sampler` or any
+registered `SpanProcessor`.
+
+When a span's `stability` meets or exceeds `minimum_stability` (including
+`Development` spans when `minimum_stability` is `Development`), the SDK MUST act
+as if doing the following in order:
 
 1. If there is a valid parent trace ID, use it. Otherwise generate a new trace ID
    (note: this must be done before calling `ShouldSample`, because it expects

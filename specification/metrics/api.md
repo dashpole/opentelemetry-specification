@@ -27,6 +27,7 @@ weight: 1
       - [Instrument advisory parameter: `ExplicitBucketBoundaries`](#instrument-advisory-parameter-explicitbucketboundaries)
       - [Instrument advisory parameter: `Attributes`](#instrument-advisory-parameter-attributes)
       - [Instrument advisory parameter: `OptIn`](#instrument-advisory-parameter-optin)
+      - [Instrument advisory parameter: `Stability`](#instrument-advisory-parameter-stability)
     + [Synchronous and Asynchronous instruments](#synchronous-and-asynchronous-instruments)
       - [Synchronous Instrument API](#synchronous-instrument-api)
       - [Asynchronous Instrument API](#asynchronous-instrument-api)
@@ -287,6 +288,20 @@ Applies to all instrument types.
 `OptIn` (bool) indicates that the instrument is disabled unless the user
 explicitly enables it. If true, OpenTelemetry SDKs produce no metric data for
 the instrument by default.
+
+##### Instrument advisory parameter: `Stability`
+
+**Status**: [Development](../document-status.md)
+
+Applies to all instrument types.
+
+`Stability` (`Stable` or `Development`, see [Maturity levels](../maturity-levels.md),
+defaulting to `Stable` if not specified) indicates the stability level of the
+instrument. All synchronous and asynchronous instrument creation operations
+SHOULD accept this optional advisory parameter. If `Stability` is `Development`,
+OpenTelemetry SDKs produce no metric data for the instrument when the
+`MeterProvider`'s `minimum_stability` is `Stable` (unless explicitly enabled via
+a View).
 
 #### Synchronous and Asynchronous instruments
 

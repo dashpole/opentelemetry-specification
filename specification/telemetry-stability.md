@@ -9,6 +9,7 @@
 
 - [Unstable Instrumentations](#unstable-instrumentations)
 - [Stable Instrumentations](#stable-instrumentations)
+  * [Development Telemetry in Stable Instrumentations](#development-telemetry-in-stable-instrumentations)
   * [Fixed Schema Telemetry Producers](#fixed-schema-telemetry-producers)
   * [Schema-File Driven Telemetry Producers](#schema-file-driven-telemetry-producers)
 
@@ -67,11 +68,34 @@ their language, e.g. via version numbers, artifact names, documentation, etc.
 Stable instrumentations fall into 2 categories: fixed-schema producers and schema-file
 driven producers.
 
-Stable instrumentations authored by OpenTelemetry SHOULD NOT produce telemetry that is
-not described by OpenTelemetry semantic conventions. If, however, this rule is broken the
+Stable instrumentations authored by OpenTelemetry SHOULD NOT produce telemetry with
+`Stability = Stable` (the default when unspecified) that is not described by stable
+OpenTelemetry semantic conventions. If, however, this rule is broken the
 instrumentations MUST NOT change such telemetry, regardless of whether they
 are fixed-schema producers or schema-file driven producers. Once the produced telemetry
 is added to the semantic conventions, changes will be allowed as described below.
+
+### Development Telemetry in Stable Instrumentations
+
+A `Stable` instrumentation MAY include telemetry marked with `Stability = Development`
+via the [Tracing API](trace/api.md#span-creation),
+[Metrics API](metrics/api.md#instrument-advisory-parameter-stability), or
+[Logs API](logs/api.md#emit-a-logrecord) (for example, telemetry conforming to
+`development` OpenTelemetry semantic conventions).
+
+- Telemetry emitted with `Stability = Stable` (the default when unspecified) by a
+  `Stable` instrumentation remains bound by the stability requirements for
+  [Fixed Schema Telemetry Producers](#fixed-schema-telemetry-producers) and
+  [Schema-File Driven Telemetry Producers](#schema-file-driven-telemetry-producers)
+  below.
+- A `Stable` instrumentation MAY modify, rename, or remove telemetry marked with
+  `Stability = Development` without incrementing the major version.
+- Graduating a piece of telemetry from `Development` to `Stable` (so that it becomes
+  emitted by default when the SDK provider's `minimum_stability` is `Stable`) is a
+  non-breaking additive change permitted in a minor version release of a `Stable`
+  instrumentation. Conversely, lowering the stability level of existing `Stable`
+  telemetry to `Development` (which suppresses it by default) is a breaking change
+  that requires a major version bump.
 
 ### Fixed Schema Telemetry Producers
 

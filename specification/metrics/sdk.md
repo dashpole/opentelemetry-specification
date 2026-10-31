@@ -16,6 +16,7 @@ weight: 3
   * [MeterProvider Creation](#meterprovider-creation)
   * [Meter Creation](#meter-creation)
   * [Configuration](#configuration)
+    + [Minimum stability](#minimum-stability)
     + [View matching mode](#view-matching-mode)
     + [MeterConfigurator](#meterconfigurator)
   * [Shutdown](#shutdown)
@@ -55,6 +56,7 @@ weight: 3
     + [Instrument advisory parameter: `ExplicitBucketBoundaries`](#instrument-advisory-parameter-explicitbucketboundaries)
     + [Instrument advisory parameter: `Attributes`](#instrument-advisory-parameter-attributes)
     + [Instrument advisory parameter: `OptIn`](#instrument-advisory-parameter-optin)
+    + [Instrument advisory parameter: `Stability`](#instrument-advisory-parameter-stability)
   * [Instrument enabled](#instrument-enabled)
   * [Instrument bind](#instrument-bind)
 - [Attribute limits](#attribute-limits)
@@ -146,6 +148,7 @@ a `Meter` whose behavior conforms to that `MeterConfig`.
 
 Configuration (
 i.e. [MetricExporters](#metricexporter), [MetricReaders](#metricreader), [Views](#view),
+(**Development**) [minimum_stability](#minimum-stability),
 and (**Development**) [MeterConfigurator](#meterconfigurator) and
 (**Development**) [view_matching_mode](#view-matching-mode)) MUST be
 owned by the `MeterProvider`. The configuration MAY be applied at the time
@@ -158,6 +161,22 @@ matter whether a `Meter` was obtained from the `MeterProvider` before or after
 the configuration change). Note: Implementation-wise, this could mean that
 `Meter` instances have a reference to their `MeterProvider` and access
 configuration only via this reference.
+
+#### Minimum stability
+
+**Status**: [Development](../document-status.md)
+
+The `MeterProvider` SHOULD support a `minimum_stability` configuration parameter
+of type `Stability` (`Development` or `Stable`, ordered `Development` <
+`Stable`, see [Maturity levels](../maturity-levels.md)), defaulting to `Stable`
+if not specified.
+
+`minimum_stability` controls the minimum
+[`Stability`](./api.md#instrument-advisory-parameter-stability) level of
+instruments that are enabled when no matching [View](#view) explicitly sets
+`enabled`. See [Measurement processing](#measurement-processing) and
+[Instrument advisory parameter: `Stability`](#instrument-advisory-parameter-stability)
+for details.
 
 #### View matching mode
 
@@ -470,13 +489,17 @@ The SDK MUST accept the following stream configuration parameters:
 
   * If `enabled` is `true`, the `MeterProvider` MUST aggregate the stream as if
     the instrument's [`OptIn`](#instrument-advisory-parameter-optin) advisory
-    parameter were `false`.
+    parameter were `false` and its
+    [`Stability`](#instrument-advisory-parameter-stability) advisory parameter
+    were `Stable`.
   * If `enabled` is `false`, the `MeterProvider` MUST use the
     [Drop Aggregation](#drop-aggregation), regardless of the `aggregation`
     provided.
   * If `enabled` is unset, the
-    [`OptIn`](#instrument-advisory-parameter-optin) advisory parameter
-    determines whether the stream is enabled.
+    [`OptIn`](#instrument-advisory-parameter-optin) and
+    [`Stability`](#instrument-advisory-parameter-stability) advisory parameters
+    (together with the `MeterProvider`'s [`minimum_stability`](#minimum-stability))
+    determine whether the stream is enabled.
 
 #### Measurement processing
 
@@ -490,8 +513,13 @@ made with an Instrument:
   not match any View's instrument selection criteria:
   * **Status**: [Development](../document-status.md) - If the instrument's
     [`OptIn` advisory parameter](#instrument-advisory-parameter-optin)
-    is set to `true`, use the [Drop Aggregation](#drop-aggregation).
-  * If `OptIn` is unset or set to `false`, take the Instrument and apply the
+    is set to `true`, or if the instrument's
+    [`Stability` advisory parameter](#instrument-advisory-parameter-stability)
+    is lower than the `MeterProvider`'s [`minimum_stability`](#minimum-stability)
+    (that is, `minimum_stability` is `Stable` and `Stability` is `Development`),
+    use the [Drop Aggregation](#drop-aggregation).
+  * If `OptIn` is unset or set to `false` and `Stability` meets or exceeds the
+    `MeterProvider`'s `minimum_stability`, take the Instrument and apply the
     default Aggregation on the basis of instrument kind according to the
     [MetricReader](#metricreader) instance's `aggregation` property.
     [Instrument advisory parameters](#instrument-advisory-parameters), if any,
@@ -1136,6 +1164,39 @@ including respecting other advisory parameters. Setting fields other than
 `enabled` on the View, including setting the `aggregation`, does not enable
 the instrument.
 
+#### Instrument advisory parameter: `Stability`
+
+**Status**: [Development](../document-status.md)
+
+This advisory parameter applies to all aggregations.
+
+An instrument is enabled when no [View](#view) sets `enabled` if and only if:
+
+- Its [`OptIn`](#instrument-advisory-parameter-optin) advisory parameter is
+  `false` (or unset), **AND**
+- Its `Stability` advisory parameter (defaulting to `Stable` when unset) meets
+  or exceeds the `MeterProvider`'s [`minimum_stability`](#minimum-stability)
+  (that is, `Stability` is `Stable`, or `minimum_stability` is `Development`).
+
+Otherwise, when no View sets `enabled`, the SDK MUST use the
+[Drop Aggregation](#drop-aggregation) (and for synchronous instruments,
+[`Enabled`](#instrument-enabled) MUST return `false`).
+
+If a matching View explicitly configures `enabled=true` on its
+[Stream configuration](#stream-configuration), the SDK MUST enable the stream
+regardless of whether `OptIn` is `true` or `Stability` is `Development`. If a
+matching View configures `enabled=false`, the SDK MUST use the
+[Drop Aggregation](#drop-aggregation). Setting fields other than `enabled` on a
+View, including setting the `aggregation`, does not enable an instrument whose
+`Stability` is lower than `minimum_stability` or whose `OptIn` is `true`.
+
+| Instrument `Stability` | Instrument `OptIn` | Default (`minimum_stability = Stable`) | Provider `minimum_stability = Development` | Matching View `enabled = true` |
+| :--- | :--- | :--- | :--- | :--- |
+| `Stable` | `false` | **Enabled** | **Enabled** | **Enabled** |
+| `Stable` | `true` | **Disabled** (Drop) | **Disabled** (Drop) | **Enabled** |
+| `Development` | `false` | **Disabled** (Drop) | **Enabled** | **Enabled** |
+| `Development` | `true` | **Disabled** (Drop) | **Disabled** (Drop) | **Enabled** |
+
 ### Instrument enabled
 
 The synchronous instrument [`Enabled`](./api.md#enabled) MUST return `false`
@@ -1150,9 +1211,9 @@ Otherwise, it SHOULD return `true`.
 It MAY return `false` to support additional optimizations and features.
 
 Note: If a user makes no configuration changes, `Enabled` returns `true` for
-instruments with `OptIn=false` (or unset), since by default
-`MeterConfig.enabled=true` and instruments use the default aggregation when no
-matching views match the instrument.
+instruments with `OptIn=false` (or unset) and `Stability=Stable` (or unset),
+since by default `MeterConfig.enabled=true`, `minimum_stability=Stable`, and
+such instruments use the default aggregation when no views match the instrument.
 
 ### Instrument bind
 

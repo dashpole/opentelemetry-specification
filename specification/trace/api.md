@@ -207,6 +207,12 @@ There are currently no required parameters for this API. Parameters can be
 added in the future, therefore, the API MUST be structured in a way for
 parameters to be added.
 
+**Status**: [Development](../document-status.md) - The API SHOULD accept the
+following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the span (`Stable`
+  or `Development`), defaulting to `Stable` if not specified.
+
 This API MUST return a language idiomatic boolean type. A returned value of
 `true` means the `Tracer` is enabled for the provided arguments, and a returned
 value of `false` means the `Tracer` is disabled for the provided arguments.
@@ -406,6 +412,12 @@ The API MUST accept the following parameters:
 - `Start timestamp`, default to current time. This argument SHOULD only be set
   when span creation time has already passed. If API is called at a moment of
   a Span logical start, API user MUST NOT explicitly set this argument.
+
+**Status**: [Development](../document-status.md) - The API SHOULD additionally
+accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the span (`Stable`
+  or `Development`), defaulting to `Stable` if not specified.
 
 Each span has zero or one parent span and zero or more child spans, which
 represent causally related operations. A tree of related spans comprises a

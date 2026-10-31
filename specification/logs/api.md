@@ -128,6 +128,12 @@ The API MAY accept the following parameter:
 
 - Exception (optional): An exception (or error) associated with the log record.
 
+**Status**: [Development](../document-status.md) - The API SHOULD additionally
+accept the following optional parameter:
+
+- `stability`: The [maturity level](../maturity-levels.md) of the log record
+  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+
 ### Enabled
 
 To help users avoid performing computationally expensive operations when
@@ -141,6 +147,9 @@ The API SHOULD accept the following parameters:
   When only explicit Context is supported, accepting this parameter is REQUIRED.
 - [Severity Number](./data-model.md#field-severitynumber) (optional)
 - [Event Name](./data-model.md#field-eventname) (optional)
+- **Status**: [Development](../document-status.md) - `stability`: The
+  [maturity level](../maturity-levels.md) of the log record (`Stable` or
+  `Development`), optional, defaulting to `Stable` if not specified.
 
 This API MUST return a language idiomatic boolean type. A returned value of
 `true` means the `Logger` is enabled for the provided arguments, and a returned

@@ -179,6 +179,12 @@ Public portions of contrib packages (constructors, configuration, interfaces)
 SHOULD remain backward compatible, except as permitted by
 [Security-related changes](#security-related-changes).
 
+A `Stable` (`1.x`) instrumentation package MAY emit telemetry marked with
+`Stability = Development` and MAY modify, rename, remove, or graduate that
+`Development` telemetry to `Stable` in minor releases without incrementing the
+major version, as defined in
+[Telemetry Stability](telemetry-stability.md#development-telemetry-in-stable-instrumentations).
+
 Languages which ship binary artifacts SHOULD offer [ABI compatibility](glossary.md#abi-compatibility) for contrib packages.
 
 **Exception:** Contrib packages MAY break stability when a required downstream dependency breaks stability.
@@ -374,7 +380,7 @@ When a signal becomes stable, the version MUST be bumped to match the other stab
 
 ### Major version bump
 
-Major version bumps MUST occur when there is a breaking change to a stable interface or a deprecated signal is removed.
+Major version bumps MUST occur when there is a breaking change to a stable interface, when a deprecated signal is removed, or when the stability level of existing `Stable` telemetry in a `Stable` instrumentation package is lowered to `Development`.
 Security-related behavioral and configuration changes that satisfy the
 [security exception](#security-related-changes) do not require a major version
 bump.
@@ -387,8 +393,10 @@ Most changes to OpenTelemetry clients result in a minor version bump.
 * New backward-compatible functionality added to any component.
 * Breaking changes to internal SDK components.
 * Breaking changes to in-development signals.
+* Breaking changes to telemetry marked with `Development` stability in `Stable` instrumentation packages.
 * New signals in Development are added.
 * Signals in Development become stable.
+* Telemetry marked with `Development` stability in `Stable` instrumentation packages becomes `Stable`.
 * Stable signals are deprecated.
 
 ### Patch version bump
