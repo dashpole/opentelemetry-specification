@@ -195,10 +195,14 @@ The API MUST accept the following parameter:
 
 * `attribute_key`: The [attribute key](../common/README.md#attribute).
 
-The API SHOULD accept the following optional parameter:
+The API SHOULD accept the following parameters:
 
+* The [Context](../context/README.md) to be associated with the `Measurement`.
+  When implicit Context is supported, then this parameter SHOULD be optional and
+  if unspecified then MUST use current Context.
+  When only explicit Context is supported, accepting this parameter is REQUIRED.
 * `stability`: The [maturity level](../maturity-levels.md) of the attribute
-  (`Stable` or `Development`), defaulting to `Stable` if not specified.
+  (`Stable` or `Development`), optional, defaulting to `Stable` if not specified.
 
 Parameters can be added in the future, therefore, the API MUST be structured in
 a way for parameters to be added.
