@@ -505,11 +505,11 @@ latest exemplar for counter instruments.
 
 ### Histograms
 
-**Status**: [Stable](../document-status.md), except where otherwise specified.
+**Status**: [Stable](../document-status.md)
 
 An [OpenTelemetry Histogram](../metrics/data-model.md#histogram) with a cumulative aggregation temporality MUST be converted to a Prometheus Histogram by default.
 
-[Development](../document-status.md): Users may opt-in to converting an OpenTelemetry Histogram to a [Prometheus Native Histogram with Custom Buckets](#histograms-as-prometheus-nhcb) (NHCB) instead when allowed by the Prometheus Protocol.
+Users may opt-in to converting an OpenTelemetry Histogram to a [Prometheus Native Histogram with Custom Buckets](#histograms-as-prometheus-nhcb) (NHCB) instead when allowed by the Prometheus Protocol.
 
 OpenTelemetry Histograms with Delta aggregation temporality MAY be aggregated into a Cumulative aggregation temporality and follow the logic below, or MUST be dropped.
 
@@ -540,7 +540,7 @@ be converted following the rules below:
 
 #### Histograms as Prometheus NHCB
 
-**Status**: [Development](../document-status.md)
+**Status**: [Stable](../document-status.md)
 
 NHCB output is currently only supported by the [Prometheus Remote-Write 2.0
 or later](https://prometheus.io/docs/specs/prw/remote_write_spec_2_0/) protocol.

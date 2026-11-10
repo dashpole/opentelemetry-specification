@@ -63,6 +63,9 @@ release.
   `service.namespace`, and `service.instance.id` should be converted to the
   Prometheus `target` info metric along with all other resource attributes.
   ([#5368](https://github.com/open-telemetry/opentelemetry-specification/pull/5368))
+- Stabilize the OpenTelemetry Histogram to Prometheus Native Histogram with
+  Custom Buckets (NHCB) transformation.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-specification/pull/TBD))
 
 ### SDK Configuration
 
